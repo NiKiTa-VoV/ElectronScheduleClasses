@@ -1,0 +1,45 @@
+/*Buttons*/
+
+.button_default {
+  border-color: #203a75;
+  color: #203a75;
+  background: rgba(155, 188, 238, 0.07);
+}
+
+.button_default:hover {
+  border-color: #2b54a9;
+  color: #2b54a9;
+  background: rgba(155, 188, 238, 0.15);
+}
+
+/*DataGrid*/
+
+.data_grid_title {
+  color: #1985d7;
+  font-size: 20px;
+  font-weight: 200;
+  margin-top: 10px;
+}
+
+.data_grid_default .MuiDataGrid-row {
+  /*background: rebeccapurple;*/
+  /*color: crimson;*/
+}
+
+/*AppBar*/
+
+.app_bar_default .MuiAppBar-colorDefault {
+  background: #19294f
+}
+
+.schedule_title_info {
+  color: #000000;
+  font-size: 1.2rem;
+  font-family: "Roboto", "Helvetica", "Arial", sans-serif;
+}
+
+.login_form_title {
+  color: #000000;
+  font-size: 1.8rem;
+  font-family: "Roboto", "Helvetica", "Arial", sans-serif;
+}
