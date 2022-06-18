@@ -59,9 +59,14 @@ ipcMain.on('grpc-request', async (event, [requestId, ...args]) => {
     .catch((error) => event.reply('grpc-response-error', { requestId, error }));
 });
 
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Methods': '*',
+};
+
 const server = createServer((req, res) => {
   if (req.method !== 'POST') {
-    res.writeHead(200).end('Hello world!');
+    res.writeHead(200, corsHeaders).end('Hello world!');
     return;
   }
 
@@ -75,12 +80,18 @@ const server = createServer((req, res) => {
     const body = JSON.parse(Buffer.concat(data).toString());
     handle(...body)
       .then((grpcResponse) => {
-        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.writeHead(200, {
+          'Content-Type': 'application/json',
+          ...corsHeaders,
+        });
         res.end(JSON.stringify(grpcResponse));
         return undefined;
       })
       .catch((error) => {
-        res.writeHead(500, { 'Content-Type': 'application/json' });
+        res.writeHead(500, {
+          'Content-Type': 'application/json',
+          ...corsHeaders,
+        });
         res.end(JSON.stringify({ error }));
       });
   });
