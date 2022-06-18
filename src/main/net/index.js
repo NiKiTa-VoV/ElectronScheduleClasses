@@ -1,6 +1,7 @@
 import * as grpc from '@grpc/grpc-js';
 import * as protoLoader from '@grpc/proto-loader';
 import { ipcMain } from 'electron';
+import { createServer } from 'http';
 
 const PROTO_PATH_BASE = 'E:\\projectJava\\ScheduleClasses\\src\\main\\proto\\';
 
@@ -38,25 +39,51 @@ const clients = {
 
 export default clients;
 
-ipcMain.on(
-  'grpc-request',
-  async (event, [requestId, clientName, method, ...params]) => {
-    console.log('got rpc request!', requestId, clientName, method, params);
-    try {
-      const grpcResponse = await new Promise((resolve, reject) =>
-        clients[clientName][method](...params, (err, response) => {
-          if (err) {
-            reject(err);
-            return;
-          }
-          resolve(response);
-        })
-      );
-      console.log(grpcResponse);
-      event.reply('grpc-response', { requestId, grpcResponse });
-    } catch (error) {
-      console.log(error);
-      event.reply('grpc-response-error', { requestId, error });
-    }
+function handle(clientName, method, ...params) {
+  return new Promise((resolve, reject) =>
+    clients[clientName][method](...params, (err, response) => {
+      if (err) {
+        reject(err);
+        return;
+      }
+      resolve(response);
+    })
+  );
+}
+
+ipcMain.on('grpc-request', async (event, [requestId, ...args]) => {
+  return handle(...args)
+    .then((grpcResponse) =>
+      event.reply('grpc-response', { requestId, grpcResponse })
+    )
+    .catch((error) => event.reply('grpc-response-error', { requestId, error }));
+});
+
+const server = createServer((req, res) => {
+  if (req.method !== 'POST') {
+    res.writeHead(200).end('Hello world!');
+    return;
   }
-);
+
+  const data = [];
+
+  req.on('data', (chunk) => {
+    data.push(chunk);
+  });
+
+  req.on('end', () => {
+    const body = JSON.parse(Buffer.concat(data).toString());
+    handle(...body)
+      .then((grpcResponse) => {
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify(grpcResponse));
+        return undefined;
+      })
+      .catch((error) => {
+        res.writeHead(500, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ error }));
+      });
+  });
+});
+
+server.listen(8091);
